@@ -42,7 +42,7 @@ void NS_CLASS neighbor_add(AODV_msg * aodv_msg, struct in_addr source,
 {
     struct timeval now;  //定义当前时间now，其中now.tv_sec为当前时间距Epoch时间的秒数, now.tv_usec为毫秒数
     rt_table_t *rt = NULL;
-    u_int32_t seqno = 0;
+    u_int32_t seqno = 0;  //32位无符号数据类型
 
     gettimeofday(&now, NULL);   //取得当前时间
 
