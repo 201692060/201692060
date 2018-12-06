@@ -44,7 +44,7 @@ void NS_CLASS neighbor_add(AODV_msg * aodv_msg, struct in_addr source,
     rt_table_t *rt = NULL;
     u_int32_t seqno = 0;
 
-    gettimeofday(&now, NULL);
+    gettimeofday(&now, NULL);   //取得当前时间
 
     rt = rt_table_find(source);
 
