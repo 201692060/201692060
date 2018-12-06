@@ -46,7 +46,7 @@ void NS_CLASS neighbor_add(AODV_msg * aodv_msg, struct in_addr source,
 
     gettimeofday(&now, NULL);   //取得当前时间
 
-    rt = rt_table_find(source);
+    rt = rt_table_find(source);  //在路由表中找到根节点（？）
 
     if (!rt) {
 	DEBUG(LOG_DEBUG, 0, "%s new NEIGHBOR!", ip_to_str(source)/*IP改为字符串*/);  //调试
