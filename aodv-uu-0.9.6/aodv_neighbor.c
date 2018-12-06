@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Authors: Erik Nordstr�m, <erik.nordstrom@it.uu.se>
+ * Authors: Erik Nordström, <erik.nordstrom@it.uu.se>
  *
  *****************************************************************************/
 
@@ -40,7 +40,7 @@ extern int llfeedback;
 void NS_CLASS neighbor_add(AODV_msg * aodv_msg, struct in_addr source,
 			   unsigned int ifindex)
 {
-    struct timeval now;
+    struct timeval now;  //定义当前时间now，其中now.tv_sec为当前时间距Epoch时间的秒数, now.tv_usec为毫秒数
     rt_table_t *rt = NULL;
     u_int32_t seqno = 0;
 
