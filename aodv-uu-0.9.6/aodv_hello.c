@@ -16,13 +16,13 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Authors: Erik Nordstr�m, <erik.nordstrom@it.uu.se>
+ * Authors: Erik Nordström, <erik.nordstrom@it.uu.se>
  *          
  *
  *****************************************************************************/
 
 #ifdef NS_PORT
-#include "ns-2/aodv-uu.h"
+#include "ns-2/aodv-uu.h"	\*若NS_PORT已定义*\	
 #else
 #include <netinet/in.h>
 #include "aodv_hello.h"
@@ -34,7 +34,7 @@
 #include "params.h"
 #include "aodv_socket.h"
 #include "defs.h"
-#include "debug.h"
+#include "debug.h"	\*若NS_PORT未定义*\
 
 extern int unidir_hack, receive_n_hellos, hello_jittering, optimized_hellos;
 static struct timer hello_timer;
