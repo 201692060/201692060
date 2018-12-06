@@ -49,7 +49,7 @@ void NS_CLASS neighbor_add(AODV_msg * aodv_msg, struct in_addr source,
     rt = rt_table_find(source);
 
     if (!rt) {
-	DEBUG(LOG_DEBUG, 0, "%s new NEIGHBOR!", ip_to_str(source));
+	DEBUG(LOG_DEBUG, 0, "%s new NEIGHBOR!", ip_to_str(source)/*IP改为字符串*/);
 	rt = rt_table_insert(source, source, 1, 0,
 			     ACTIVE_ROUTE_TIMEOUT, VALID, 0, ifindex);
     } else {
