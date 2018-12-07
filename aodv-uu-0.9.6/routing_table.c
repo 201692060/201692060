@@ -62,7 +62,7 @@ void NS_CLASS rt_table_destroy()
 	list_t *tmp = NULL, *pos = NULL;
 
 	for (i = 0; i < RT_TABLESIZE; i++) {
-		list_foreach_safe(pos, tmp, &rt_tbl.tbl[i]) {
+		list_foreach_safe(pos, tmp, &rt_tbl.tbl[i]) {  //遍历链表，相当于if
 			rt_table_t *rt = (rt_table_t *) pos;
 
 			rt_table_delete(rt);
