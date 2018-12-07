@@ -52,7 +52,7 @@ void NS_CLASS rt_table_init()
 
 	/* We do a for loop here... NS does not like us to use memset() */
 	for (i = 0; i < RT_TABLESIZE; i++) {
-		INIT_LIST_HEAD(&rt_tbl.tbl[i]);  //初始化链表
+		INIT_LIST_HEAD(&rt_tbl.tbl[i]);  //创建RT_TABLESIZE个自连接的链表结点
 	}
 }
 
