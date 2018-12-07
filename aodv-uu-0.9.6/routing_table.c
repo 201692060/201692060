@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Authors: Erik Nordstr�m, <erik.nordstrom@it.uu.se>
+ * Authors: Erik Nordström, <erik.nordstrom@it.uu.se>
  *
  *****************************************************************************/
 
@@ -52,7 +52,7 @@ void NS_CLASS rt_table_init()
 
 	/* We do a for loop here... NS does not like us to use memset() */
 	for (i = 0; i < RT_TABLESIZE; i++) {
-		INIT_LIST_HEAD(&rt_tbl.tbl[i]);
+		INIT_LIST_HEAD(&rt_tbl.tbl[i]);  //初始化链表
 	}
 }
 
