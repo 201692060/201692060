@@ -56,7 +56,7 @@ void NS_CLASS rt_table_init()
 	}
 }
 
-void NS_CLASS rt_table_destroy()
+void NS_CLASS rt_table_destroy()  //删除除了链表头（？）之外的其他节点
 {
 	int i;
 	list_t *tmp = NULL, *pos = NULL;
