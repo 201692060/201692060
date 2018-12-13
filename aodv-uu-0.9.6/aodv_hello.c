@@ -215,7 +215,7 @@ void NS_CLASS hello_process(RREP * hello, int rreplen, unsigned int ifindex)
 		ext_neighbor.s_addr =
 		    *(in_addr_t *) ((char *) AODV_EXT_DATA(ext) + i);
 
-		if (ext_neighbor.s_addr == DEV_IFINDEX(ifindex).ipaddr.s_addr)
+		if (ext_neighbor.s_addr == DEV_IFINDEX(ifindex).ipaddr.s_addr)//DEV 开发；IFINDEX 索引序号
 		    flags &= ~RT_UNIDIR;
 	    }
 	    break;
@@ -239,11 +239,11 @@ void NS_CLASS hello_process(RREP * hello, int rreplen, unsigned int ifindex)
     /* This neighbor should only be valid after receiving 3
        consecutive hello messages... */
     if (receive_n_hellos)
-	state = INVALID;
+	state = INVALID;//INVALID 无效
     else
-	state = VALID;
+	state = VALID;//VALID 有效
 
-    timeout = ALLOWED_HELLO_LOSS * hello_interval + ROUTE_TIMEOUT_SLACK;
+    timeout = ALLOWED_HELLO_LOSS/*允许丢失hello数*/ * hello_interval + ROUTE_TIMEOUT_SLACK/*路由超时延迟*/;
 
     if (!rt) {
 	/* No active or expired route in the routing table. So we add a
