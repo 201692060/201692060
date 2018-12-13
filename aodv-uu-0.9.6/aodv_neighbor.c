@@ -86,7 +86,7 @@ void NS_CLASS neighbor_link_break(rt_table_t * rt)
 
     if (rt->hcnt != 1) {
 	DEBUG(LOG_DEBUG, 0, "%s is not a neighbor, hcnt=%d!!!",
-	      ip_to_str(rt->dest_addr), rt->hcnt);
+	      ip_to_str(rt->dest_addr), rt->hcnt)//将IP地址转化为string格式
 	return;
     }
 
