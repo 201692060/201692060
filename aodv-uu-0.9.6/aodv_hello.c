@@ -48,7 +48,7 @@ long NS_CLASS hello_jitter()
 {
     if (hello_jittering) {
 #ifdef NS_PORT
-	return (long) (((float) Random::integer(RAND_MAX + 1) / RAND_MAX - 0.5)
+	return (long) (((float) Random::integer(RAND_MAX + 1) / RAND_MAX - 0.5)//生成-0.5~0.5之间的随机小数
 		       * JITTER_INTERVAL);
 #else
 	return (long) (((float) random() / RAND_MAX - 0.5) * JITTER_INTERVAL);
@@ -62,10 +62,10 @@ void NS_CLASS hello_start()
     if (hello_timer.used)
 	return;
 
-    gettimeofday(&this_host.fwd_time, NULL);
+    gettimeofday(&this_host.fwd_time, NULL);//获取当前时间
 
     DEBUG(LOG_DEBUG, 0, "Starting to send HELLOs!");
-    timer_init(&hello_timer, &NS_CLASS hello_send, NULL);
+    timer_init(&hello_timer, &NS_CLASS hello_send, NULL);//定时
 
     hello_send(NULL);
 }
@@ -74,7 +74,7 @@ void NS_CLASS hello_stop()
 {
     DEBUG(LOG_DEBUG, 0,
 	  "No active forwarding routes - stopped sending HELLOs!");
-    timer_remove(&hello_timer);
+    timer_remove(&hello_timer);//停止定时
 }
 
 void NS_CLASS hello_send(void *arg)
@@ -109,7 +109,7 @@ void NS_CLASS hello_send(void *arg)
 #ifdef DEBUG_HELLO
 	    DEBUG(LOG_DEBUG, 0, "sending Hello to 255.255.255.255");
 #endif
-	    rrep = rrep_create(flags, 0, 0, DEV_NR(i).ipaddr,
+	    rrep = rrep_create(flags, 0, 0, DEV_NR(i).ipaddr,   //rrep: RouteReply,路线回复
 			       this_host.seqno,
 			       DEV_NR(i).ipaddr,
 			       ALLOWED_HELLO_LOSS * HELLO_INTERVAL);
@@ -128,7 +128,7 @@ void NS_CLASS hello_send(void *arg)
 
 		for (i = 0; i < RT_TABLESIZE; i++) {
 		    list_t *pos;
-		    list_foreach(pos, &rt_tbl.tbl[i]) {
+		    list_foreach(pos, &rt_tbl.tbl[i]) {//对list中每个元素进行操作
 			rt_table_t *rt = (rt_table_t *) pos;
 			/* If an entry has an active hello timer, we assume
 			   that we are receiving hello messages from that
@@ -139,7 +139,7 @@ void NS_CLASS hello_send(void *arg)
 				  "Adding %s to hello neighbor set ext",
 				  ip_to_str(rt->dest_addr));
 #endif
-			    memcpy(AODV_EXT_DATA(ext), &rt->dest_addr,
+			   memcpy(AODV_EXT_DATA(ext), &rt->dest_addr,//内存拷贝函数
 				   sizeof(struct in_addr));
 			    ext->length += sizeof(struct in_addr);
 			}
@@ -178,7 +178,7 @@ void NS_CLASS hello_process(RREP * hello, int rreplen, unsigned int ifindex)
     gettimeofday(&now, NULL);
 
     hello_dest.s_addr = hello->dest_addr;
-    hello_seqno = ntohl(hello->dest_seqno);
+    hello_seqno = ntohl(hello->dest_seqno);//将一个32位数由网络字节顺序转换为主机字节顺序
 
     rt = rt_table_find(hello_dest);
 
