@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Authors: Erik Nordstr�m, <erik.nordstrom@it.uu.se>
+ * Authors: Erik Nordström, <erik.nordstrom@it.uu.se>
  *          
  *
  *****************************************************************************/
@@ -36,47 +36,48 @@
 
 typedef struct {
     u_int8_t type;
-#if defined(__LITTLE_ENDIAN)
+#if defined(__LITTLE_ENDIAN)//小端
     u_int16_t res1:6;
     u_int16_t a:1;
     u_int16_t r:1;
-    u_int16_t prefix:5;
+    u_int16_t prefix:5;//前缀5个bit
     u_int16_t res2:3;
-#elif defined(__BIG_ENDIAN)
+#elif defined(__BIG_ENDIAN)//大端
     u_int16_t r:1;
     u_int16_t a:1;
     u_int16_t res1:6;
     u_int16_t res2:3;
-    u_int16_t prefix:5;
+    u_int16_t prefix:5;//前缀5个bit
 #else
 #error "Adjust your <bits/endian.h> defines"
 #endif
-    u_int8_t hcnt;
-    u_int32_t dest_addr;
-    u_int32_t dest_seqno;
-    u_int32_t orig_addr;
-    u_int32_t lifetime;
+    u_int8_t hcnt;//从发起节点到多播节点组里产生RREP信息的节点的跳数
+    u_int32_t dest_addr;//目的节点ip地址
+    u_int32_t dest_seqno;//目的节点序列号
+    u_int32_t orig_addr;//发起节点ip地址
+    u_int32_t lifetime;//路由生命时间，单位为毫秒，在这段时间内，接收RREP的节点会认 为这条路由是有效的
 } RREP;
 
 #define RREP_SIZE sizeof(RREP)
 
 typedef struct {
-    u_int8_t type;
-    u_int8_t reserved;
+    u_int8_t type;//消息种类标志，RREP-ACK 消息的这个标志是 4
+    u_int8_t reserved; //填充 0; 接收时忽略
+
 } RREP_ack;
 
 #define RREP_ACK_SIZE sizeof(RREP_ack)
 #endif				/* NS_NO_GLOBALS */
 
 #ifndef NS_NO_DECLARATIONS
-RREP *rrep_create(u_int8_t flags,
-		  u_int8_t prefix,
-		  u_int8_t hcnt,
-		  struct in_addr dest_addr,
-		  u_int32_t dest_seqno,
-		  struct in_addr orig_addr, u_int32_t life);
+RREP *rrep_create(u_int8_t flags,//标志位
+		  u_int8_t prefix,//前缀
+		  u_int8_t hcnt,//跳数
+		  struct in_addr dest_addr,//目的节点ip地址
+		  u_int32_t dest_seqno,//目的节点序列号
+		  struct in_addr orig_addr, u_int32_t life);//生成路由回复
 
-RREP_ack *rrep_ack_create();
+RREP_ack *rrep_ack_create();//生成路由回复的ACK
 AODV_ext *rrep_add_ext(RREP * rrep, int type, unsigned int offset,
 		       int len, char *data);
 void rrep_send(RREP * rrep, rt_table_t * rev_rt, rt_table_t * fwd_rt, int size);
