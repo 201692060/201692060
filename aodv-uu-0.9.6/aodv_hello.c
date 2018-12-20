@@ -91,7 +91,7 @@ void NS_CLASS hello_send(void *arg)
     gettimeofday(&now, NULL);
 
     if (optimized_hellos &&
-	timeval_diff(&now, &this_host.fwd_time) > ACTIVE_ROUTE_TIMEOUT) {
+	timeval_diff(&now, &this_host.fwd_time) > ACTIVE_ROUTE_TIMEOUT/*若超时*/) {//超时则停止发送hello消息
 	hello_stop();
 	return;
     }
