@@ -94,7 +94,7 @@ struct option longopts[] = {
     {0}
 };
 
-void usage(int status)
+void usage(int status)//输出所有命令行参数及其作用
 {
     if (status != 0) {
 	fprintf(stderr, "Try `%s --help' for more information.\n", progname);
@@ -128,7 +128,7 @@ void usage(int status)
     exit(status);
 }
 
-int set_kernel_options()
+int set_kernel_options()//设置内核选项，在所有接口上禁用ICMP重定向
 {
     int i, fd = -1;
     char on = '1';
@@ -200,7 +200,7 @@ int set_kernel_options()
     return 0;
 }
 
-int find_default_gw(void)
+int find_default_gw(void)//寻找默认网关
 {
     FILE *route;
     char buf[100], *l;
@@ -233,7 +233,7 @@ int find_default_gw(void)
 /*
  * Returns information on a network interface given its name...
  */
-struct sockaddr_in *get_if_info(char *ifname, int type)
+struct sockaddr_in *get_if_info(char *ifname, int type)//根据名字和类型，寻找相应的接口，返回信息
 {
     int skfd;
     struct sockaddr_in *ina;
@@ -259,13 +259,13 @@ struct sockaddr_in *get_if_info(char *ifname, int type)
    sockets and file descriptors and so on... */
 #define CALLBACK_FUNCS 5
 static struct callback {
-    int fd;
-    callback_func_t func;
+    int fd;//描述符
+    callback_func_t func;//函数
 } callbacks[CALLBACK_FUNCS];
 
 static int nr_callbacks = 0;
 
-int attach_callback_func(int fd, callback_func_t func)
+int attach_callback_func(int fd, callback_func_t func)//新增一个callback数据结构元素
 {
     if (nr_callbacks >= CALLBACK_FUNCS) {
 	fprintf(stderr, "callback attach limit reached!!\n");
@@ -281,7 +281,7 @@ int attach_callback_func(int fd, callback_func_t func)
    are located in the current directory. use those. Otherwise fall
    back to modprobe. */
 
-void load_modules(char *ifname)
+void load_modules(char *ifname)//装载内核模块
 {
     struct stat st;
     char buf[1024], *l = NULL;
@@ -326,7 +326,7 @@ void load_modules(char *ifname)
     }
 }
 
-void remove_modules(void)
+void remove_modules(void)//删除模块
 {
 	int ret;
 
@@ -337,7 +337,7 @@ void remove_modules(void)
 	}
 }
 
-void host_init(char *ifname)
+void host_init(char *ifname)//初始化端口
 {
     struct sockaddr_in *ina;
     char buf[1024], tmp_ifname[IFNAMSIZ],
@@ -463,7 +463,7 @@ void host_init(char *ifname)
 }
 
 /* This signal handler ensures clean exits */
-void signal_handler(int type)
+void signal_handler(int type)//信号处理器。根据信号种类做出相应的处理
 {
 
     switch (type) {
@@ -669,7 +669,7 @@ int main(int argc, char **argv)
 	timeout_spec.tv_sec = timeout->tv_sec;
 	timeout_spec.tv_nsec = timeout->tv_usec * 1000;
 	/*pselect函数允许进程指示内核等待多个事件中任何一个发生，
-	*/
+	 并只在有事件发生或经历一段时间后唤醒0*/
 	if ((n = pselect(nfds, &rfds, NULL, NULL, &timeout_spec, &origmask)) < 0) {
 	    if (errno != EINTR)
 		alog(LOG_WARNING, errno, __FUNCTION__,
@@ -681,7 +681,8 @@ int main(int argc, char **argv)
 	    for (i = 0; i < nr_callbacks; i++) {
 		if (FD_ISSET(callbacks[i].fd, &rfds)) {
 		    /* We don't want any timer SIGALRM's while executing the
-		       callback functions, therefore we block the timer... */
+		       callback functions, therefore we block the timer... 
+		       执行回调函数时我们不需要任何计时器SIGALRM，因此我们阻止计时器......*/
 		    (*callbacks[i].func) (callbacks[i].fd);
 		}
 	    }
@@ -690,7 +691,7 @@ int main(int argc, char **argv)
     return 0;
 }
 
-static void cleanup(void)
+static void cleanup(void)//清空套接字，路由表等数据结构和模块
 {
     DEBUG(LOG_DEBUG, 0, "CLEANING UP!");
     rt_table_destroy();
