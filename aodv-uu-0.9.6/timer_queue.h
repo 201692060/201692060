@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Authors: Erik Nordstr�m, <erik.nordstrom@it.uu.se>
+ * Authors: Erik Nordström, <erik.nordstrom@it.uu.se>
  *
  *****************************************************************************/
 #ifndef _TIMER_QUEUE_H
@@ -35,12 +35,12 @@ typedef void (*timeout_func_t) (void *);
 #endif
 
 struct timer {
-    list_t l;
+    list_t l;//定时器队列
     int used;
     struct timeval timeout;
     timeout_func_t handler;
     void *data;
-};
+};//定义定时器结构体
 
 static inline long timeval_diff(struct timeval *t1, struct timeval *t2)
 {
@@ -72,20 +72,20 @@ static inline int timeval_add_msec(struct timeval *t, unsigned long msec)
 #endif				/* NS_NO_GLOBALS */
 
 #ifndef NS_NO_DECLARATIONS
-void timer_queue_init();
-int timer_remove(struct timer *t);
-void timer_set_timeout(struct timer *t, long msec);
-int timer_timeout_now(struct timer *t);
-struct timeval *timer_age_queue();
+void timer_queue_init();//初始化定时器默认函数
+int timer_remove(struct timer *t);//删除一个定时器
+void timer_set_timeout(struct timer *t, long msec);//在定时器原来的时间上再加一些时间
+int timer_timeout_now(struct timer *t);//让此定时器立即超时
+struct timeval *timer_age_queue();//计算定时器生存时间
 /* timer_init should be called for every newly allocated timer */
-int timer_init(struct timer *t, timeout_func_t f, void *data);
+int timer_init(struct timer *t, timeout_func_t f, void *data);//初始化定时器
 
 #ifdef NS_PORT
-void timer_add(struct timer *t);
-void timer_timeout(struct timeval *now);
+void timer_add(struct timer *t);//添加一个定时器
+void timer_timeout(struct timeval *now);//当一个定时器超时的时候调用此函数
 
 #ifdef DEBUG_TIMER_QUEUE
-void NS_CLASS printTQ();
+void NS_CLASS printTQ();//打印定时器信息
 #endif				/* DEBUG_TIMER_QUEUE */
 
 #endif				/* NS_PORT */
