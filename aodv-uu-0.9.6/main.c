@@ -668,7 +668,8 @@ int main(int argc, char **argv)
 	
 	timeout_spec.tv_sec = timeout->tv_sec;
 	timeout_spec.tv_nsec = timeout->tv_usec * 1000;
-	
+	/*pselect函数允许进程指示内核等待多个事件中任何一个发生，
+	*/
 	if ((n = pselect(nfds, &rfds, NULL, NULL, &timeout_spec, &origmask)) < 0) {
 	    if (errno != EINTR)
 		alog(LOG_WARNING, errno, __FUNCTION__,
