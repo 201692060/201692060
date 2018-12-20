@@ -16,14 +16,14 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Authors: Erik Nordstr�m, <erik.nordstrom@it.uu.se>
+ * Authors: Erik Nordström, <erik.nordstrom@it.uu.se>
  *
  *****************************************************************************/
 #include <stdlib.h>
 
 #include "list.h"
 
-static inline int listelm_detach(list_t * prev, list_t * next)
+static inline int listelm_detach(list_t * prev, list_t * next)//删除某位置节点
 {
     next->prev = prev;
     prev->next = next;
@@ -31,7 +31,7 @@ static inline int listelm_detach(list_t * prev, list_t * next)
     return LIST_SUCCESS;
 }
 
-static inline int listelm_add(list_t * le, list_t * prev, list_t * next)
+static inline int listelm_add(list_t * le, list_t * prev, list_t * next)//在特定位置添加一个节点
 {
     prev->next = le;
     le->prev = prev;
@@ -41,7 +41,7 @@ static inline int listelm_add(list_t * le, list_t * prev, list_t * next)
     return LIST_SUCCESS;
 }
 
-int list_add(list_t * head, list_t * le)
+int list_add(list_t * head, list_t * le)//在头部添加一个节点
 {
 
     if (!head || !le)
@@ -52,7 +52,7 @@ int list_add(list_t * head, list_t * le)
     return LIST_SUCCESS;
 }
 
-int list_add_tail(list_t * head, list_t * le)
+int list_add_tail(list_t * head, list_t * le)//在尾部添加一个节点
 {
 
     if (!head || !le)
@@ -63,7 +63,7 @@ int list_add_tail(list_t * head, list_t * le)
     return LIST_SUCCESS;
 }
 
-int list_detach(list_t * le)
+int list_detach(list_t * le)//删除某节点
 {
     if (!le)
 	return LIST_NULL;
