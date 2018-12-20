@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Authors: Erik Nordstr�m, <erik.nordstrom@it.uu.se>
+ * Authors: Erik Nordström, <erik.nordstrom@it.uu.se>
  *
  *****************************************************************************/
 #include <stdlib.h>
@@ -39,7 +39,7 @@ static LIST(TQ);
 static void printTQ(list_t * l);
 #endif
 #endif				/* NS_PORT */
-
+//初始化定时器
 int NS_CLASS timer_init(struct timer *t, timeout_func_t f, void *data)
 {
     if (!t)
@@ -56,6 +56,7 @@ int NS_CLASS timer_init(struct timer *t, timeout_func_t f, void *data)
 }
 
 /* Called when a timer should timeout */
+//当一个定时器超时，调用此函数
 void NS_CLASS timer_timeout(struct timeval *now)
 {
     LIST(expTQ);
@@ -94,6 +95,7 @@ void NS_CLASS timer_timeout(struct timeval *now)
     }
 }
 
+//在定时器队列中添加一个定时器
 NS_STATIC void NS_CLASS timer_add(struct timer *t)
 {
     list_t *pos;
@@ -138,6 +140,7 @@ NS_STATIC void NS_CLASS timer_add(struct timer *t)
     return;
 }
 
+//在定时器队列中删除一个定时器
 int NS_CLASS timer_remove(struct timer *t)
 {
     int res = 1;
@@ -156,7 +159,7 @@ int NS_CLASS timer_remove(struct timer *t)
     return res;
 }
 
-
+//让此定时器立即超时
 int NS_CLASS timer_timeout_now(struct timer *t)
 {
     if (timer_remove(t)) {
@@ -171,7 +174,7 @@ int NS_CLASS timer_timeout_now(struct timer *t)
     return -1;
 }
 
-
+//在定时器原来的时间上再加一些时间
 void NS_CLASS timer_set_timeout(struct timer *t, long msec)
 {
     if (t->used) {
@@ -190,6 +193,7 @@ void NS_CLASS timer_set_timeout(struct timer *t, long msec)
     timer_add(t);
 }
 
+//计算该定时器剩余时间
 long timer_left(struct timer *t)
 {
     struct timeval now;
@@ -201,6 +205,8 @@ long timer_left(struct timer *t)
 
     return timeval_diff(&now, &t->timeout);
 }
+
+//计算定时器队列的生存时间
 struct timeval *NS_CLASS timer_age_queue()
 {
     struct timeval now;
@@ -235,6 +241,7 @@ struct timeval *NS_CLASS timer_age_queue()
 
 
 #ifdef DEBUG_TIMER_QUEUE
+//打印定时器队列中每个定时器的信息
 void NS_CLASS printTQ(list_t * l)
 {
     struct timeval now;
