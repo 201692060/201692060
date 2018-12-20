@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Authors: Erik Nordstr�m, <erik.nordstrom@it.uu.se>
+ * Authors: Erik Nordström, <erik.nordstrom@it.uu.se>
  *
  *****************************************************************************/
 #ifndef _LIST_H
@@ -25,7 +25,7 @@
 /* Simple linked list inspired from the Linux kernel list implementation */
 typedef struct list_t {
     struct list_t *prev, *next;
-} list_t;
+} list_t;//定义一个链表
 
 #define LIST_NULL -1
 #define LIST_SUCCESS 1
@@ -40,9 +40,9 @@ typedef struct list_t {
 	(le)->next = NULL; (le)->prev = NULL; \
 } while (0)
 
-int list_detach(list_t * le);
-int list_add_tail(list_t * head, list_t * le);
-int list_add(list_t * head, list_t * le);
+int list_detach(list_t * le);//删除某个节点
+int list_add_tail(list_t * head, list_t * le);//在尾部添加一个节点
+int list_add(list_t * head, list_t * le);//在头部添加一个节点
 
 #define list_foreach(curr, head) \
         for (curr = (head)->next; curr != (head); curr = curr->next)
