@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Authors: Erik Nordstr�m, <erik.nordstrom@it.uu.se>
+ * Authors: Erik Nordström, <erik.nordstrom@it.uu.se>
  *          
  *
  *****************************************************************************/
@@ -33,30 +33,30 @@
 struct ip_data {
     char data[IP_DATA_MAX_LEN];
     int len;
-};
+};//定义结构体IP数据报
 
 /* This is a list of nodes that route discovery are performed for */
 typedef struct seek_list {
     list_t l;
-    struct in_addr dest_addr;
-    u_int32_t dest_seqno;
+    struct in_addr dest_addr;//目的节点IP地址
+    u_int32_t dest_seqno;//目的节点序列号
     struct ip_data *ipd;
     u_int8_t flags;		/* The flags we are using for resending the RREQ */
     int reqs;
     int ttl;
     struct timer seek_timer;
-} seek_list_t;
+} seek_list_t;//路由搜寻链表
 #endif				/* NS_NO_GLOBALS */
 
 #ifndef NS_NO_DECLARATIONS
 seek_list_t *seek_list_insert(struct in_addr dest_addr, u_int32_t dest_seqno,
-			      int ttl, u_int8_t flags, struct ip_data *ipd);
-int seek_list_remove(seek_list_t * entry);
-seek_list_t *seek_list_find(struct in_addr dest_addr);
+			      int ttl, u_int8_t flags, struct ip_data *ipd);//在链表中插入新节点，增加一个想要寻找的目的地
+int seek_list_remove(seek_list_t * entry);//删除一个节点，减少一个想要寻找的目的地
+seek_list_t *seek_list_find(struct in_addr dest_addr);//根据目的节点地址在链表中进行搜寻
 
 #ifdef NS_PORT
 #ifdef SEEK_LIST_DEBUG
-void seek_list_print();
+void seek_list_print();//打印节点信息
 #endif
 #endif				/* NS_PORT */
 
