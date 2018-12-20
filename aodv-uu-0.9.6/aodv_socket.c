@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Authors: Erik Nordstr�m, <erik.nordstrom@it.uu.se>
+ * Authors: Erik Nordström, <erik.nordstrom@it.uu.se>
  *
  *****************************************************************************/
 
@@ -78,6 +78,7 @@ struct cmsghdr *cmsg_nxthdr_fix(struct msghdr *__msg, struct cmsghdr *__cmsg)
 
 void NS_CLASS aodv_socket_init()
 {
+/*创建udp套接字并为每一个允许AODV的接口开一个套接字并相互绑定*/
 #ifndef NS_PORT
     struct sockaddr_in aodv_addr;
     struct ifreq ifr;
@@ -122,7 +123,7 @@ void NS_CLASS aodv_socket_init()
 
 	retval = bind(DEV_NR(i).sock, (struct sockaddr *) &aodv_addr,
 		      sizeof(struct sockaddr));
-
+/*设定套接字选项，若其中有设定失败则报错退出*/
 	if (retval < 0) {
 	    perror("Bind failed ");
 	    exit(-1);
@@ -180,7 +181,7 @@ void NS_CLASS aodv_socket_init()
 		 "RAW send socket buffer size set to %d", bufsize);
 	}
 #endif
-	/* Set max allowable receive buffer size... */
+	/* 设定接受的最大缓冲区大小 */
 	for (;; bufsize -= 1024) {
 	    if (setsockopt(DEV_NR(i).sock, SOL_SOCKET, SO_RCVBUF,
 			   (char *) &bufsize, optlen) == 0) {
@@ -251,8 +252,9 @@ void NS_CLASS aodv_socket_process_packet(AODV_msg * aodv_msg, int len,
 }
 
 #ifdef NS_PORT
-void NS_CLASS recvAODVUUPacket(Packet * p)
-{
+void NS_CLASS recvAODVUUPacket(Packet * p)//处理收到的数据包
+{/*先分配缓存空间，在确认数据包是AODV并且是从其他地址发向本机，就将数据存入缓存空间，释放数据包；
+ 若数据包是本地生成的，就忽略掉*/
     int len, i, ttl = 0;
     struct in_addr src, dst;
     struct hdr_cmn *ch = HDR_CMN(p);
