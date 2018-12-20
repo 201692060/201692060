@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Authors: Erik Nordstr�m, <erik.nordstrom@it.uu.se>
+ * Authors: Erik Nordström, <erik.nordstrom@it.uu.se>
  *          
  *
  *****************************************************************************/
@@ -41,10 +41,10 @@ extern int unidir_hack, optimized_hellos, llfeedback;
 #endif
 
 RREP *NS_CLASS rrep_create(u_int8_t flags,
-			   u_int8_t prefix,
+			   u_int8_t prefix,//字首
 			   u_int8_t hcnt,
 			   struct in_addr dest_addr,
-			   u_int32_t dest_seqno,
+			   u_int32_t dest_seqno,//序列号
 			   struct in_addr orig_addr, u_int32_t life)
 {
     RREP *rrep;
