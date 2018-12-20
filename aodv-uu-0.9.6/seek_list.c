@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Authors: Erik Nordstr�m, <erik.nordstrom@it.uu.se>
+ * Authors: Erik Nordström, <erik.nordstrom@it.uu.se>
  *          
  *
  *****************************************************************************/
@@ -45,7 +45,7 @@ static LIST(seekhead);
 void seek_list_print();
 #endif
 #endif				/* NS_PORT */
-
+////在链表中插入新节点，增加一个想要寻找的目的地
 seek_list_t *NS_CLASS seek_list_insert(struct in_addr dest_addr,
 				       u_int32_t dest_seqno,
 				       int ttl, u_int8_t flags,
@@ -73,7 +73,7 @@ seek_list_t *NS_CLASS seek_list_insert(struct in_addr dest_addr,
 #endif
     return entry;
 }
-
+//删除一个节点，即减少一个想要寻找的目的地
 int NS_CLASS seek_list_remove(seek_list_t * entry)
 {
     if (!entry)
@@ -90,7 +90,7 @@ int NS_CLASS seek_list_remove(seek_list_t * entry)
     free(entry);
     return 1;
 }
-
+//根据地址，在链表中寻找该节点
 seek_list_t *NS_CLASS seek_list_find(struct in_addr dest_addr)
 {
     list_t *pos;
@@ -105,6 +105,7 @@ seek_list_t *NS_CLASS seek_list_find(struct in_addr dest_addr)
 }
 
 #ifdef SEEK_LIST_DEBUG
+//打印出每个节点的信息，包括目的地地址，目的地序列号，生命周期等
 void NS_CLASS seek_list_print()
 {
     list_t *pos;
