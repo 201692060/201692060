@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Author: Erik Nordstr�m, <erik.nordstrom@it.uu.se>
+ * Author: Erik Nordström, <erik.nordstrom@it.uu.se>
  *
  *****************************************************************************/
 #include <stdio.h>
@@ -122,7 +122,7 @@ void usage(int status)
 	 "-R, --rate-limit        Toggle rate limiting of RREQs and RERRs (default ON).\n"
 	 "-q, --quality-threshold Set a minimum signal quality threshold for control packets.\n"
 	 "-V, --version           Show version.\n\n"
-	 "Erik Nordstr�m, <erik.nordstrom@it.uu.se>\n\n",
+	 "Erik Nordström, <erik.nordstrom@it.uu.se>\n\n",
 	 progname, AODV_LOG_PATH, AODV_RT_LOG_PATH);
 
     exit(status);
@@ -504,11 +504,11 @@ int main(int argc, char **argv)
     sigact.sa_handler = signal_handler;
         
     /* This server should shut down on these signals. */
-    sigaction(SIGTERM, &sigact, 0);
+    sigaction(SIGTERM, &sigact, 0);//查询或设置信号处理方式
     sigaction(SIGHUP, &sigact, 0);
     sigaction(SIGINT, &sigact, 0);
     
-    sigaddset(&mask, SIGTERM);
+    sigaddset(&mask, SIGTERM);//a将参数SIGTERM代表的信号加入参数mask集中
     sigaddset(&mask, SIGHUP);
     sigaddset(&mask, SIGINT);
     /* Only capture segmentation faults when we are not debugging... */
@@ -518,13 +518,13 @@ int main(int argc, char **argv)
 
     /* Block the signals we are watching here so that we can
      * handle them in pselect instead. */
-    sigprocmask(SIG_BLOCK, &mask, &origmask);
+    sigprocmask(SIG_BLOCK, &mask, &origmask);//用于改变进程的当前阻塞信号集
 
     /* Parse command line: */
-    while (1) {
+    while (1) {//永真循环，用户输入不同的参数，执行不同的分支
 	int opt;
 
-	opt = getopt_long(argc, argv, "i:fjln:dghoq:r:s:uwxDLRV", longopts, 0);
+	opt = getopt_long(argc, argv, "i:fjln:dghoq:r:s:uwxDLRV", longopts, 0);//解析命令行选项参数
 
 	if (opt == EOF)
 	    break;
@@ -592,7 +592,7 @@ int main(int argc, char **argv)
 	    break;
 	case 'V':
 	    printf
-		("\nAODV-UU v%s, %s � Uppsala University & Ericsson AB.\nAuthor: Erik Nordstr�m, <erik.nordstrom@it.uu.se>\n\n",
+		("\nAODV-UU v%s, %s © Uppsala University & Ericsson AB.\nAuthor: Erik Nordström, <erik.nordstrom@it.uu.se>\n\n",
 		 AODV_UU_VERSION, DRAFT_VERSION);
 	    exit(0);
 	    break;
@@ -603,26 +603,26 @@ int main(int argc, char **argv)
 	    usage(0);
 	}
     }
-    /* Check that we are running as root */
-    if (geteuid() != 0) {
+    /* 判断程序是否在root权限下运行 */
+    if (geteuid()/*取得执行目前进程有效的用户识别码*/ != 0) {
 	fprintf(stderr, "must be root\n");
 	exit(1);
     }
 
     /* Detach from terminal */
-    if (daemonize) {
+    if (daemonize) {//若daemonize不为0，关闭输入输出错误流
 	if (fork() != 0)
 	    exit(0);
 	/* Close stdin, stdout and stderr... */
 	/*  close(0); */
 	close(1);
 	close(2);
-	setsid();
+	setsid();//使当前进程成为新的会话组长和进程组长
     }
     /* Make sure we cleanup at exit... */
-    atexit((void *) &cleanup);
+    atexit((void *) &cleanup);//与原来的登录会话和进程组脱离
 
-    /* Initialize data structures and services... */
+    /* 初始化数据结构和服务 */
     rt_table_init();
     log_init();
     /*   packet_queue_init(); */
@@ -637,7 +637,7 @@ int main(int argc, char **argv)
     }
 #endif
 
-    /* Set sockets to watch... */
+    /* 设置套接字 */
     FD_ZERO(&readers);
     for (i = 0; i < nr_callbacks; i++) {
 	FD_SET(callbacks[i].fd, &readers);
@@ -645,7 +645,7 @@ int main(int argc, char **argv)
 	    nfds = callbacks[i].fd + 1;
     }
 
-    /* Set the wait on reboot timer... */
+    /* 设置等待重启计时器 */
     if (wait_on_reboot) {
 	timer_init(&worb_timer, wait_on_reboot_timeout, &wait_on_reboot);
 	timer_set_timeout(&worb_timer, DELETE_PERIOD);
@@ -654,21 +654,21 @@ int main(int argc, char **argv)
 	     DELETE_PERIOD);
     }
 
-    /* Schedule the first Hello */
+    /* 安排第一个Hello（暂时不发送） */
     if (!optimized_hellos && !llfeedback)
 	hello_start();
 
     if (rt_log_interval)
-	log_rt_table_init();
+	log_rt_table_init();//初始化路由表
 
-    while (1) {
+    while (1) {//永真循环
 	memcpy((char *) &rfds, (char *) &readers, sizeof(rfds));
 
 	timeout = timer_age_queue();
 	
 	timeout_spec.tv_sec = timeout->tv_sec;
 	timeout_spec.tv_nsec = timeout->tv_usec * 1000;
-
+	
 	if ((n = pselect(nfds, &rfds, NULL, NULL, &timeout_spec, &origmask)) < 0) {
 	    if (errno != EINTR)
 		alog(LOG_WARNING, errno, __FUNCTION__,
