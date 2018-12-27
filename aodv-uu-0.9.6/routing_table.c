@@ -43,7 +43,7 @@ static unsigned int hashing(struct in_addr *addr, hash_value * hash);
 
 extern int llfeedback;
 
-void NS_CLASS rt_table_init()
+void NS_CLASS rt_table_init()//初始化相关变量
 {
 	int i;
 
@@ -56,7 +56,7 @@ void NS_CLASS rt_table_init()
 	}
 }
 
-void NS_CLASS rt_table_destroy()  //删除除了链表头（？）之外的其他节点
+void NS_CLASS rt_table_destroy()  //销毁路由表
 {
 	int i;
 	list_t *tmp = NULL, *pos = NULL;
@@ -70,8 +70,8 @@ void NS_CLASS rt_table_destroy()  //删除除了链表头（？）之外的其�
 	}
 }
 
-/* Calculate a hash value and table index given a key... */
-unsigned int hashing(struct in_addr *addr, hash_value * hash)
+/* Calculate a hash value and table index given a key... 给定密钥计算哈希值和表索引 */
+unsigned int hashing(struct in_addr *addr, hash_value * hash)//计算哈希值
 {
 	/*   *hash = (*addr & 0x7fffffff); */
 	*hash = (hash_value) addr->s_addr;
@@ -79,10 +79,10 @@ unsigned int hashing(struct in_addr *addr, hash_value * hash)
 	return (*hash & RT_TABLEMASK);
 }
 
-rt_table_t *NS_CLASS rt_table_insert(struct in_addr dest_addr,
-				     struct in_addr next,
-				     u_int8_t hops, u_int32_t seqno,
-				     u_int32_t life, u_int8_t state,
+rt_table_t *NS_CLASS rt_table_insert(struct in_addr dest_addr,             //增加一条路由表项
+				     struct in_addr next,		   //包括目的地址、下一跳、跳数、
+				     u_int8_t hops, u_int32_t seqno,	   //目的地序列号、生命期、路由状态、
+				     u_int32_t life, u_int8_t state,	   //正确标记、网络接口等。
 				     u_int16_t flags, unsigned int ifindex)
 {
 	hash_value hash;
@@ -191,7 +191,7 @@ rt_table_t *NS_CLASS rt_table_insert(struct in_addr dest_addr,
 rt_table_t *NS_CLASS rt_table_update(rt_table_t * rt, struct in_addr next,
 				     u_int8_t hops, u_int32_t seqno,
 				     u_int32_t lifetime, u_int8_t state,
-				     u_int16_t flags)
+				     u_int16_t flags)				//更新路由表信息
 {
 	struct in_addr nm;
 	nm.s_addr = 0;
@@ -200,7 +200,8 @@ rt_table_t *NS_CLASS rt_table_update(rt_table_t * rt, struct in_addr next,
 
 		/* If this previously was an expired route, but will now be
 		   active again we must add it to the kernel routing
-		   table... */
+		   table... 
+		   如果以前这是一个过期的路由，但现在将再次处于活动状态，我们必须将它添加到内核路由表中 */
 		rt_tbl.num_active++;
 
 		if (rt->flags & RT_REPAIR)
@@ -230,7 +231,8 @@ rt_table_t *NS_CLASS rt_table_update(rt_table_t * rt, struct in_addr next,
 		timer_remove(&rt->hello_timer);
 		/* Must also do a "link break" when updating a 1 hop
 		neighbor in case another routing entry use this as
-		next hop... */
+		next hop... 
+		更新1跳邻居时还必须执行“链接中断”，以防另一个路由条目将其用作下一跳 */
 		neighbor_link_break(rt);
 	}
 	
@@ -255,7 +257,8 @@ rt_table_t *NS_CLASS rt_table_update(rt_table_t * rt, struct in_addr next,
 	rt->state = state;
 
 	/* In case there are buffered packets for this destination, we send
-	 * them on the new route. */
+	 * them on the new route. 
+	 如果此目的地有缓冲数据包，我们将在新路由上发送它们。 */
 	if (rt->state == VALID
 	    && seek_list_remove(seek_list_find(rt->dest_addr))) {
 #ifdef NS_PORT
@@ -269,7 +272,7 @@ rt_table_t *NS_CLASS rt_table_update(rt_table_t * rt, struct in_addr next,
 }
 
 NS_INLINE rt_table_t *NS_CLASS rt_table_update_timeout(rt_table_t * rt,
-						       u_int32_t lifetime)
+						       u_int32_t lifetime) //更新路由表中的定时器
 {
 	struct timeval new_timeout;
 
@@ -278,7 +281,8 @@ NS_INLINE rt_table_t *NS_CLASS rt_table_update_timeout(rt_table_t * rt,
 
 	if (rt->state == VALID) {
 		/* Check if the current valid timeout is larger than the new
-		   one - in that case keep the old one. */
+		   one - in that case keep the old one. 
+		   检查当前有效超时是否大于新超时 - 在这种情况下保留旧超时。 */
 		gettimeofday(&new_timeout, NULL);
 		timeval_add_msec(&new_timeout, lifetime);
 
@@ -290,16 +294,18 @@ NS_INLINE rt_table_t *NS_CLASS rt_table_update_timeout(rt_table_t * rt,
 	return rt;
 }
 
-/* Update route timeouts in response to an incoming or outgoing data packet. */
+/* Update route timeouts in response to an incoming or outgoing data packet.
+更新路由超时以响应传入或传出的数据包。 */
 void NS_CLASS rt_table_update_route_timeouts(rt_table_t * fwd_rt,
-					     rt_table_t * rev_rt)
+					     rt_table_t * rev_rt) //更新输入或输出包路由时的定时器
 {
 	rt_table_t *next_hop_rt = NULL;
 
 	/* When forwarding a packet, we update the lifetime of the
 	   destination's routing table entry, as well as the entry for the
 	   next hop neighbor (if not the same). AODV draft 10, section
-	   6.2. */
+	   6.2. 
+	   转发数据包时，我们会更新目标路由表条目的生命周期，以及下一跳邻居的条目（如果不相同） */
 
 	if (fwd_rt && fwd_rt->state == VALID) {
 
