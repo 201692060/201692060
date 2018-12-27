@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Authors: Erik Nordstr�m, <erik.nordstrom@it.uu.se>
+ * Authors: Erik Nordström, <erik.nordstrom@it.uu.se>
  *          
  *
  *****************************************************************************/
@@ -81,19 +81,19 @@ struct blacklist {
 
 #ifndef NS_NO_DECLARATIONS
 RREQ *rreq_create(u_int8_t flags, struct in_addr dest_addr,
-		  u_int32_t dest_seqno, struct in_addr orig_addr);
+		  u_int32_t dest_seqno, struct in_addr orig_addr);//创建路由请求
 void rreq_send(struct in_addr dest_addr, u_int32_t dest_seqno, int ttl,
-	       u_int8_t flags);
-void rreq_forward(RREQ * rreq, int size, int ttl);
+	       u_int8_t flags);//向外发送路由请求
+void rreq_forward(RREQ * rreq, int size, int ttl);//转发路由请求
 void rreq_process(RREQ * rreq, int rreqlen, struct in_addr ip_src,
-		  struct in_addr ip_dst, int ip_ttl, unsigned int ifindex);
+		  struct in_addr ip_dst, int ip_ttl, unsigned int ifindex);//处理路由请求
 void rreq_route_discovery(struct in_addr dest_addr, u_int8_t flags,
-			  struct ip_data *ipd);
-void rreq_record_timeout(void *arg);
-struct blacklist *rreq_blacklist_insert(struct in_addr dest_addr);
-void rreq_blacklist_timeout(void *arg);
+			  struct ip_data *ipd);//路由发现
+void rreq_record_timeout(void *arg);//超时记录
+struct blacklist *rreq_blacklist_insert(struct in_addr dest_addr);//路由请求黑名单
+void rreq_blacklist_timeout(void *arg);//超时黑名单
 void rreq_local_repair(rt_table_t * rt, struct in_addr src_addr,
-		       struct ip_data *ipd);
+		       struct ip_data *ipd);//本地修复
 
 #ifdef NS_PORT
 struct rreq_record *rreq_record_insert(struct in_addr orig_addr,
