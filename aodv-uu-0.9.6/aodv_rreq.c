@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Authors: Erik Nordstr�m, <erik.nordstrom@it.uu.se>
+ * Authors: Erik Nordström, <erik.nordstrom@it.uu.se>
  *          
  *
  *****************************************************************************/
@@ -44,8 +44,8 @@
 #define DEBUG_OUTPUT
 
 #ifndef NS_PORT
-static LIST(rreq_records);
-static LIST(rreq_blacklist);
+static LIST(rreq_records);//静态路由请求数据包链表
+static LIST(rreq_blacklist);//不可达路由请求黑名单
 
 static struct rreq_record *rreq_record_insert(struct in_addr orig_addr,
 					      u_int32_t rreq_id);
@@ -54,7 +54,7 @@ static struct rreq_record *rreq_record_find(struct in_addr orig_addr,
 
 struct blacklist *rreq_blacklist_find(struct in_addr dest_addr);
 
-extern int rreq_gratuitous, expanding_ring_search;
+extern int rreq_gratuitous, expanding_ring_search;//免费路由回复标志，增加搜索时间
 extern int internet_gw_mode;
 #endif
 
@@ -75,17 +75,17 @@ RREQ *NS_CLASS rreq_create(u_int8_t flags, struct in_addr dest_addr,
 
     /* Immediately before a node originates a RREQ flood it must
        increment its sequence number... */
-    seqno_incr(this_host.seqno);
-    rreq->orig_seqno = htonl(this_host.seqno);
+    seqno_incr(this_host.seqno);//增加源节点自身序列号
+    rreq->orig_seqno = htonl(this_host.seqno);//路由请求包中源节点序列号为源节点增加后的序列号
 
     if (flags & RREQ_JOIN)
-	rreq->j = 1;
+	rreq->j = 1;//加入标志置1，为多播保留
     if (flags & RREQ_REPAIR)
-	rreq->r = 1;
+	rreq->r = 1;//修复标志置1，为多播保留
     if (flags & RREQ_GRATUITOUS)
-	rreq->g = 1;
+	rreq->g = 1;//免费路由回复标志
     if (flags & RREQ_DEST_ONLY)
-	rreq->d = 1;
+	rreq->d = 1;//仅允许目的节点回复标志
 
     DEBUG(LOG_DEBUG, 0, "Assembled RREQ %s", ip_to_str(dest_addr));
 #ifdef DEBUG_OUTPUT
@@ -117,14 +117,14 @@ void NS_CLASS rreq_send(struct in_addr dest_addr, u_int32_t dest_seqno,
 			int ttl, u_int8_t flags)
 {
     RREQ *rreq;
-    struct in_addr dest;
+    struct in_addr dest;//目的节点IP地址
     int i;
 
     dest.s_addr = AODV_BROADCAST;
 
     /* Check if we should force the gratuitous flag... (-g option). */
     if (rreq_gratuitous)
-	flags |= RREQ_GRATUITOUS;
+	flags |= RREQ_GRATUITOUS;//检查是否该向目标节点IP地址域指定的节点发送一个免费路由回复消息
 
     /* Broadcast on all interfaces */
     for (i = 0; i < MAX_NR_INTERFACES; i++) {
@@ -132,12 +132,12 @@ void NS_CLASS rreq_send(struct in_addr dest_addr, u_int32_t dest_seqno,
 	    continue;
 	rreq = rreq_create(flags, dest_addr, dest_seqno, DEV_NR(i).ipaddr);
 	aodv_socket_send((AODV_msg *) rreq, dest, RREQ_SIZE, ttl, &DEV_NR(i));
-    }
+    }//向当前节点所有端口广播rreq消息
 }
 
-void NS_CLASS rreq_forward(RREQ * rreq, int size, int ttl)
+void NS_CLASS rreq_forward(RREQ * rreq, int size, int ttl)//rreq的转发
 {
-    struct in_addr dest, orig;
+    struct in_addr dest, orig;//目的地、源ip地址
     int i;
 
     dest.s_addr = AODV_BROADCAST;
@@ -145,42 +145,42 @@ void NS_CLASS rreq_forward(RREQ * rreq, int size, int ttl)
 
     /* FORWARD the RREQ if the TTL allows it. */
     DEBUG(LOG_INFO, 0, "forwarding RREQ src=%s, rreq_id=%lu",
-	  ip_to_str(orig), ntohl(rreq->rreq_id));
+	  ip_to_str(orig), ntohl(rreq->rreq_id));//在TTL值减为0之前转发rreq消息
 
     /* Queue the received message in the send buffer */
     rreq = (RREQ *) aodv_socket_queue_msg((AODV_msg *) rreq, size);
-
+    //将收到的rreq消息排队在接收缓存中
     rreq->hcnt++;		/* Increase hopcount to account for
-				 * intermediate route */
-
+    //增加跳数				 * intermediate route */
+    
     /* Send out on all interfaces */
     for (i = 0; i < MAX_NR_INTERFACES; i++) {
 	if (!DEV_NR(i).enabled)
 	    continue;
 	aodv_socket_send((AODV_msg *) rreq, dest, size, ttl, &DEV_NR(i));
-    }
+    }//向所有端口广播rreq消息
 }
 
 void NS_CLASS rreq_process(RREQ * rreq, int rreqlen, struct in_addr ip_src,
 			   struct in_addr ip_dst, int ip_ttl,
-			   unsigned int ifindex)
+			   unsigned int ifindex)//处理接收到的rreq消息
 {
 
     AODV_ext *ext;
     RREP *rrep = NULL;
     int rrep_size = RREP_SIZE;
     rt_table_t *rev_rt, *fwd_rt = NULL;
-    u_int32_t rreq_orig_seqno, rreq_dest_seqno;
-    u_int32_t rreq_id, rreq_new_hcnt, life;
+    u_int32_t rreq_orig_seqno, rreq_dest_seqno;//源节点序列号，目的节点序列号
+    u_int32_t rreq_id, rreq_new_hcnt, life;//路由请求id,新的跳数，生命周期
     unsigned int extlen = 0;
     struct in_addr rreq_dest, rreq_orig;
 
     rreq_dest.s_addr = rreq->dest_addr;
     rreq_orig.s_addr = rreq->orig_addr;
-    rreq_id = ntohl(rreq->rreq_id);
-    rreq_dest_seqno = ntohl(rreq->dest_seqno);
-    rreq_orig_seqno = ntohl(rreq->orig_seqno);
-    rreq_new_hcnt = rreq->hcnt + 1;
+    rreq_id = ntohl(rreq->rreq_id);//路由请求id加一
+    rreq_dest_seqno = ntohl(rreq->dest_seqno);//目的节点序列号加一
+    rreq_orig_seqno = ntohl(rreq->orig_seqno);//源节点序列号加一
+    rreq_new_hcnt = rreq->hcnt + 1;//跳数加一
 
 
     /* Ignore RREQ's that originated from this node. Either we do this
@@ -204,20 +204,21 @@ void NS_CLASS rreq_process(RREQ * rreq, int rreqlen, struct in_addr ip_src,
        it is, then ignore the RREQ. */
     if (rreq_blacklist_find(ip_src)) {
 	DEBUG(LOG_DEBUG, 0, "prev hop of RREQ blacklisted, ignoring!");
-	return;
+	return;//检查接收到的rreq包的上一跳节点是否在本节点的黑名单中，若是的话则忽略当前rreq消息，可有效避免网络攻击
     }
 
     /* Ignore already processed RREQs. */
     if (rreq_record_find(rreq_orig, rreq_id))
-	return;
+	return;//忽略已被处理过的rreq消息
 
     /* Now buffer this RREQ so that we don't process a similar RREQ we
        get within PATH_DISCOVERY_TIME. */
     rreq_record_insert(rreq_orig, rreq_id);
-
+    //每当接收到rreq消息时都应该缓存它以防止在路由发现时间内处理相同的rreq消息
     /* Determine whether there are any RREQ extensions */
     ext = (AODV_ext *) ((char *) rreq + RREQ_SIZE);
-
+    
+    //检查是否有路由请求被延长
     while ((rreqlen - extlen) > RREQ_SIZE) {
 	switch (ext->type) {
 	case RREQ_EXT:
@@ -236,9 +237,10 @@ void NS_CLASS rreq_process(RREQ * rreq, int rreqlen, struct in_addr ip_src,
     log_pkt_fields((AODV_msg *) rreq);
 #endif
 
+    //更新创建返向路由
     /* The node always creates or updates a REVERSE ROUTE entry to the
        source of the RREQ. */
-    rev_rt = rt_table_find(rreq_orig);
+    rev_rt = rt_table_find(rreq_orig);//找到路由请求中的源节点
 
     /* Calculate the extended minimal life time. */
     life = PATH_DISCOVERY_TIME - 2 * rreq_new_hcnt * NODE_TRAVERSAL_TIME;
@@ -283,13 +285,13 @@ void NS_CLASS rreq_process(RREQ * rreq, int rreqlen, struct in_addr ip_src,
 	case HOST_INET:
 	    /* We must increase the gw's sequence number before sending a RREP,
 	     * otherwise intermediate nodes will not forward the RREP. */
-	    seqno_incr(this_host.seqno);
+	    seqno_incr(this_host.seqno);//增加序列号
 	    rrep = rrep_create(0, 0, 0, DEV_IFINDEX(rev_rt->ifindex).ipaddr,
 			       this_host.seqno, rev_rt->dest_addr,
-			       ACTIVE_ROUTE_TIMEOUT);
+			       ACTIVE_ROUTE_TIMEOUT);//创建一个路由回复
 
 	    ext = rrep_add_ext(rrep, RREP_INET_DEST_EXT, rrep_size,
-			       sizeof(struct in_addr), (char *) &rreq_dest);
+			       sizeof(struct in_addr), (char *) &rreq_dest);//一个大小被延长的路由回复
 
 	    rrep_size += AODV_EXT_SIZE(ext);
 
@@ -297,7 +299,7 @@ void NS_CLASS rreq_process(RREQ * rreq, int rreqlen, struct in_addr ip_src,
 		  "Responding for INTERNET dest: %s rrep_size=%d",
 		  ip_to_str(rreq_dest), rrep_size);
 
-	    rrep_send(rrep, rev_rt, NULL, rrep_size);
+	    rrep_send(rrep, rev_rt, NULL, rrep_size);//发送一个路由回复
 
 	    return;
 
@@ -310,7 +312,7 @@ void NS_CLASS rreq_process(RREQ * rreq, int rreqlen, struct in_addr ip_src,
     /* Are we the destination of the RREQ?, if so we should immediately send a
        RREP.. */
     if (rreq_dest.s_addr == DEV_IFINDEX(ifindex).ipaddr.s_addr) {
-
+     //判断当前节点是否是路由请求的目的节点
 	/* WE are the RREQ DESTINATION. Update the node's own
 	   sequence number to the maximum of the current seqno and the
 	   one in the RREQ. */
@@ -319,7 +321,7 @@ void NS_CLASS rreq_process(RREQ * rreq, int rreqlen, struct in_addr ip_src,
 		this_host.seqno = rreq_dest_seqno;
 	    else if (this_host.seqno == rreq_dest_seqno)
 		seqno_incr(this_host.seqno);
-	}
+	}//更新最大序列号
 	rrep = rrep_create(0, 0, 0, DEV_IFINDEX(rev_rt->ifindex).ipaddr,
 			   this_host.seqno, rev_rt->dest_addr,
 			   MY_ROUTE_TIMEOUT);
@@ -331,7 +333,7 @@ void NS_CLASS rreq_process(RREQ * rreq, int rreqlen, struct in_addr ip_src,
 	 * route entry */
 
 	fwd_rt = rt_table_find(rreq_dest);
-
+        //检查是否有到达目的节点的有效路由
 	if (fwd_rt && fwd_rt->state == VALID && !rreq->d) {
 	    struct timeval now;
 	    u_int32_t lifetime;
@@ -380,14 +382,14 @@ void NS_CLASS rreq_process(RREQ * rreq, int rreqlen, struct in_addr ip_src,
 		lifetime = timeval_diff(&fwd_rt->rt_timer.timeout, &now);
 		rrep = rrep_create(0, 0, fwd_rt->hcnt, fwd_rt->dest_addr,
 				   fwd_rt->dest_seqno, rev_rt->dest_addr,
-				   lifetime);
+				   lifetime);//判断接收到的路由请求的序列号是否时最新的，如果是的话就转发，否则不用转发
 		rrep_send(rrep, rev_rt, fwd_rt, rrep_size);
 	    } else {
 		goto forward;
 	    }
 	    /* If the GRATUITOUS flag is set, we must also unicast a
 	       gratuitous RREP to the destination. */
-	    if (rreq->g) {
+	    if (rreq->g) {//检查免费路由回复标志位是否被置1，如果是则向目标节点IP地址域指定的节点发送一个免费路由回复消息
 		rrep = rrep_create(0, 0, rev_rt->hcnt, rev_rt->dest_addr,
 				   rev_rt->dest_seqno, fwd_rt->dest_addr,
 				   lifetime);
@@ -418,22 +420,22 @@ void NS_CLASS rreq_process(RREQ * rreq, int rreqlen, struct in_addr ip_src,
 /* Perform route discovery for a unicast destination */
 
 void NS_CLASS rreq_route_discovery(struct in_addr dest_addr, u_int8_t flags,
-				   struct ip_data *ipd)
+				   struct ip_data *ipd)//路由发现
 {
-    struct timeval now;
-    rt_table_t *rt;
-    seek_list_t *seek_entry;
-    u_int32_t dest_seqno;
+    struct timeval now;//定时器
+    rt_table_t *rt;//路由表
+    seek_list_t *seek_entry;//搜寻链表
+    u_int32_t dest_seqno;//目的节点序列号
     int ttl;
 #define TTL_VALUE ttl
 
     gettimeofday(&now, NULL);
 
-    if (seek_list_find(dest_addr))
+    if (seek_list_find(dest_addr))//寻找目的节点
 	return;
 
     /* If we already have a route entry, we use information from it. */
-    rt = rt_table_find(dest_addr);
+    rt = rt_table_find(dest_addr);//如果有通往目的节点的有效路径则直接通信
 
     ttl = NET_DIAMETER;		/* This is the TTL if we don't use expanding
 				   ring search */
@@ -458,7 +460,7 @@ void NS_CLASS rreq_route_discovery(struct in_addr dest_addr, u_int8_t flags,
 	if (timeval_diff(&rt->rt_timer.timeout, &now) <
 	    (2 * NET_TRAVERSAL_TIME))
 	    rt_table_update_timeout(rt, 2 * NET_TRAVERSAL_TIME);
-    }
+    }//等待路由回复，若超时未回复则重发rreq且等待时间为上一次的两倍
 
     rreq_send(dest_addr, dest_seqno, ttl, flags);
 
@@ -466,7 +468,7 @@ void NS_CLASS rreq_route_discovery(struct in_addr dest_addr, u_int8_t flags,
     seek_entry = seek_list_insert(dest_addr, dest_seqno, ttl, flags, ipd);
 
     /* Set a timer for this RREQ */
-    if (expanding_ring_search)
+    if (expanding_ring_search)//增加搜寻时间
 	timer_set_timeout(&seek_entry->seek_timer, RING_TRAVERSAL_TIME);
     else
 	timer_set_timeout(&seek_entry->seek_timer, NET_TRAVERSAL_TIME);
@@ -478,12 +480,12 @@ void NS_CLASS rreq_route_discovery(struct in_addr dest_addr, u_int8_t flags,
 
 /* Local repair is very similar to route discovery... */
 void NS_CLASS rreq_local_repair(rt_table_t * rt, struct in_addr src_addr,
-				struct ip_data *ipd)
+				struct ip_data *ipd)//本地修复
 {
-    struct timeval now;
-    seek_list_t *seek_entry;
-    rt_table_t *src_entry;
-    int ttl;
+    struct timeval now;//定时器
+    seek_list_t *seek_entry;//搜寻链表
+    rt_table_t *src_entry;//路由表
+    int ttl;//生命周期
     u_int8_t flags = 0;
 
     if (!rt)
@@ -573,7 +575,7 @@ NS_STATIC struct rreq_record *NS_CLASS rreq_record_insert(struct in_addr
 
 NS_STATIC struct rreq_record *NS_CLASS rreq_record_find(struct in_addr
 							orig_addr,
-							u_int32_t rreq_id)
+							u_int32_t rreq_id)//找到路由请求记录中的一个源节点
 {
     list_t *pos;
 
@@ -586,7 +588,7 @@ NS_STATIC struct rreq_record *NS_CLASS rreq_record_find(struct in_addr
     return NULL;
 }
 
-void NS_CLASS rreq_record_timeout(void *arg)
+void NS_CLASS rreq_record_timeout(void *arg)//记录超时的路由请求
 {
     struct rreq_record *rec = (struct rreq_record *) arg;
 
@@ -594,7 +596,7 @@ void NS_CLASS rreq_record_timeout(void *arg)
     free(rec);
 }
 
-struct blacklist *NS_CLASS rreq_blacklist_insert(struct in_addr dest_addr)
+struct blacklist *NS_CLASS rreq_blacklist_insert(struct in_addr dest_addr)//把一个不可达目的节点加入黑名单
 {
 
     struct blacklist *bl;
@@ -620,7 +622,7 @@ struct blacklist *NS_CLASS rreq_blacklist_insert(struct in_addr dest_addr)
     return bl;
 }
 
-struct blacklist *NS_CLASS rreq_blacklist_find(struct in_addr dest_addr)
+struct blacklist *NS_CLASS rreq_blacklist_find(struct in_addr dest_addr)//查找黑名单中的某个目的节点
 {
     list_t *pos;
 
@@ -633,7 +635,7 @@ struct blacklist *NS_CLASS rreq_blacklist_find(struct in_addr dest_addr)
     return NULL;
 }
 
-void NS_CLASS rreq_blacklist_timeout(void *arg)
+void NS_CLASS rreq_blacklist_timeout(void *arg)//超时的路由请求黑名单
 {
 
     struct blacklist *bl = (struct blacklist *) arg;
