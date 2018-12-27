@@ -53,7 +53,8 @@ extern int wait_on_reboot, hello_qual_threshold, ratelimit;
 static void aodv_socket_read(int fd);
 
 /* Seems that some libc (for example ulibc) has a bug in the provided
- * CMSG_NXTHDR() routine... redefining it here */
+ * CMSG_NXTHDR() routine... redefining it here
+ 似乎某些libc（例如ulibc）在提供的CMSG_NXTHDR（）例程中有一个错误...在这里重新定义它*/
 
 static struct cmsghdr *__cmsg_nxthdr_fix(void *__ctl, size_t __size,
 					 struct cmsghdr *__cmsg)
@@ -88,14 +89,14 @@ void NS_CLASS aodv_socket_init()
     int bufsize = SO_RECVBUF_SIZE;
     socklen_t optlen = sizeof(bufsize);
 
-    /* Create a UDP socket */
+    /* Create a UDP socket 创建一个UDP套接字*/
 
     if (this_host.nif == 0) {
 	fprintf(stderr, "No interfaces configured\n");
 	exit(-1);
     }
 
-    /* Open a socket for every AODV enabled interface */
+    /* Open a socket for every AODV enabled interface 为每个启用AODV的接口打开一个套接字 */
     for (i = 0; i < MAX_NR_INTERFACES; i++) {
 	if (!DEV_NR(i).enabled)
 	    continue;
@@ -107,7 +108,7 @@ void NS_CLASS aodv_socket_init()
 	    exit(-1);
 	}
 #ifdef CONFIG_GATEWAY
-	/* Data packet send socket */
+	/* Data packet send socket 数据包发送套接字 */
 	DEV_NR(i).psock = socket(PF_INET, SOCK_RAW, IPPROTO_RAW);
 
 	if (DEV_NR(i).psock < 0) {
@@ -115,7 +116,7 @@ void NS_CLASS aodv_socket_init()
 	    exit(-1);
 	}
 #endif
-	/* Bind the socket to the AODV port number */
+	/* Bind the socket to the AODV port number 将套接字绑定到AODV端口号 */
 	memset(&aodv_addr, 0, sizeof(aodv_addr));
 	aodv_addr.sin_family = AF_INET;
 	aodv_addr.sin_port = htons(AODV_PORT);
@@ -215,7 +216,8 @@ void NS_CLASS aodv_socket_process_packet(AODV_msg * aodv_msg, int len,
 					 int ttl, unsigned int ifindex)
 {
 
-    /* If this was a HELLO message... Process as HELLO. */
+    /* If this was a HELLO message... Process as HELLO.
+    如果这是一条HELLO消息......请像HELLO一样处理。*/
     if ((aodv_msg->type == AODV_RREP && ttl == 1 &&
 	 dst.s_addr == AODV_BROADCAST)) {
 	hello_process((RREP *) aodv_msg, len, ifindex);
@@ -268,19 +270,19 @@ void NS_CLASS recvAODVUUPacket(Packet * p)//处理收到的数据包
 
     AODV_msg *aodv_msg = (AODV_msg *) recv_buf;
 
-    /* Only handle AODVUU packets */
+    /* Only handle AODVUU packets 只处理AODVUU数据包 */
     assert(ch->ptype() == PT_AODVUU);
 
-    /* Only process incoming packets */
+    /* Only process incoming packets 仅处理传入的数据包 */
     assert(ch->direction() == hdr_cmn::UP);
 
-    /* Copy message to receive buffer */
+    /* Copy message to receive buffer 将消息复制到接收缓冲区 */
     memcpy(recv_buf, ah, RECV_BUF_SIZE);
 
-    /* Deallocate packet, we have the information we need... */
+    /* Deallocate packet, we have the information we need... 解除分组，我们有我们需要的信息...... */
     Packet::free(p);
 
-    /* Ignore messages generated locally */
+    /* Ignore messages generated locally 忽略本地生成的消息 */
     for (i = 0; i < MAX_NR_INTERFACES; i++)
 	if (this_host.devs[i].enabled &&
 	    memcmp(&src, &this_host.devs[i].ipaddr,
@@ -323,7 +325,9 @@ static void aodv_socket_read(int fd)
 
     src.s_addr = src_addr.sin_addr.s_addr;
 
-    /* Get the ttl and destination address from the control message */
+    /* Get the ttl and destination address from the control message 
+     * 从控制信息里读取ttl值和目的地址，如果ttl值小于0，就忽略该数据包
+    */
     for (cmsg = CMSG_FIRSTHDR(&msgh); cmsg != NULL;
 	 cmsg = CMSG_NXTHDR_FIX(&msgh, cmsg)) {
 	if (cmsg->cmsg_level == SOL_IP) {
@@ -345,7 +349,9 @@ static void aodv_socket_read(int fd)
 	return;
     }
 
-    /* Ignore messages generated locally */
+    /* Ignore messages generated locally 
+     * 如果是本地生成的数据包就忽略掉
+    */
     for (i = 0; i < MAX_NR_INTERFACES; i++)
 	if (this_host.devs[i].enabled &&
 	    memcmp(&src, &this_host.devs[i].ipaddr,
@@ -360,11 +366,12 @@ static void aodv_socket_read(int fd)
 	DEBUG(LOG_ERR, 0, "Could not get device info!\n");
 	return;
     }
-
+/*把控制交给aodv_socket_process_packet函数进行消息分类和处理*/
     aodv_socket_process_packet(aodv_msg, len, src, dst, ttl, dev->ifindex);
 }
 #endif				/* NS_PORT */
-
+/*设置首部信息，设置ttl,检查当前状态是否允许RREP，清楚报文的AODV部分，把要发送的消息复制到报文相应位置，
+设置其他常用首部信息，设置接收方的端口号*/
 void NS_CLASS aodv_socket_send(AODV_msg * aodv_msg, struct in_addr dst,
 			       int len, u_int8_t ttl, struct dev_info *dev)
 {
@@ -393,13 +400,16 @@ void NS_CLASS aodv_socket_send(AODV_msg * aodv_msg, struct in_addr dst,
 
     /*
        NS_PORT: Sending of AODV_msg messages to other AODV-UU routing agents
-       by encapsulating them in a Packet.
+       by encapsulating them in a Packet. NS_PORT：
+       通过将AODV msg消息封装在数据包中，将其发送到其他AODV-UU路由代理。
 
        Note: This method is _only_ for sending AODV packets to other routing
-       agents, _not_ for forwarding "regular" IP packets!
+       agents, _not_ for forwarding "regular" IP packets! 
+       注意：此方法仅用于将AODV数据包发送到其他路由代理，而不是用于转发“常规”IP数据包！
      */
 
-    /* If we are in waiting phase after reboot, don't send any RREPs */
+    /* If we are in waiting phase after reboot, don't send any RREPs 
+    如果我们在重启后处于等待阶段，请不要发送任何RREP */
     if (wait_on_reboot && aodv_msg->type == AODV_RREP)
 	return;
 
@@ -407,19 +417,20 @@ void NS_CLASS aodv_socket_send(AODV_msg * aodv_msg, struct in_addr dst,
        NS_PORT: Don't allocate packet until now. Otherwise packet uid
        (unique ID) space is unnecessarily exhausted at the beginning of
        the simulation, resulting in uid:s starting at values greater than 0.
+       NS_PORT：直到现在才分配数据包。 否则，在模拟开始时，数据包uid（唯一ID）空间不必要地耗尽，导致uid：s从大于0的值开始。
      */
     Packet *p = allocpkt();
     struct hdr_cmn *ch = HDR_CMN(p);
     struct hdr_ip *ih = HDR_IP(p);
     hdr_aodvuu *ah = HDR_AODVUU(p);
 
-    // Clear AODVUU part of packet
+    // Clear AODVUU part of packet 清除AODVUU数据包的一部分
     memset(ah, '\0', ah->size());
 
-    // Copy message contents into packet
+    // Copy message contents into packet 将邮件内容复制到数据包中
     memcpy(ah, aodv_msg, len);
 
-    // Set common header fields
+    // Set common header fields 设置公共标题字段
     ch->ptype() = PT_AODVUU;
     ch->direction() = hdr_cmn::DOWN;
     ch->size() += len + IP_HDR_LEN;
@@ -427,12 +438,12 @@ void NS_CLASS aodv_socket_send(AODV_msg * aodv_msg, struct in_addr dst,
     ch->error() = 0;
     ch->prev_hop_ = (nsaddr_t) dev->ipaddr.s_addr;
 
-    // Set IP header fields
+    // Set IP header fields 设置IP标头字段
     ih->saddr() = (nsaddr_t) dev->ipaddr.s_addr;
     ih->daddr() = (nsaddr_t) dst.s_addr;
     ih->ttl() = ttl;
 
-    // Note: Port number for routing agents, not AODV port number!
+    // Note: Port number for routing agents, not AODV port number! 注意：路由代理的端口号，而不是AODV端口号！
     ih->sport() = RT_PORT;
     ih->dport() = RT_PORT;
 
@@ -443,7 +454,9 @@ void NS_CLASS aodv_socket_send(AODV_msg * aodv_msg, struct in_addr dst,
     /* If rate limiting is enabled, check if we are sending either a
        RREQ or a RERR. In that case, drop the outgoing control packet
        if the time since last transmit of that type of packet is less
-       than the allowed RATE LIMIT time... */
+       than the allowed RATE LIMIT time... 
+       如果启用了速率限制，请检查我们是否正在发送RREQ或RERR。
+       在这种情况下，如果自上次传输该类型数据包的时间小于允许的RATE LIMIT时间，则丢弃传出控制数据包... */
 
     if (ratelimit) {
 
@@ -494,7 +507,8 @@ void NS_CLASS aodv_socket_send(AODV_msg * aodv_msg, struct in_addr dst,
     }
 
     /* If we broadcast this message we update the time of last broadcast
-       to prevent unnecessary broadcasts of HELLO msg's */
+       to prevent unnecessary broadcasts of HELLO msg's 
+       如果我们广播此消息，我们更新上次广播的时间，以防止不必要的HELLO消息广播 */
     if (dst.s_addr == AODV_BROADCAST) {
 
 	gettimeofday(&this_host.bcast_time, NULL);
@@ -520,7 +534,8 @@ void NS_CLASS aodv_socket_send(AODV_msg * aodv_msg, struct in_addr dst,
 
 #ifdef NS_PORT
 	ch->addr_type() = NS_AF_INET;
-	/* We trust the decision of next hop for all AODV messages... */
+	/* We trust the decision of next hop for all AODV messages...
+	 我们相信所有AODV消息的下一跳决定...... */
 
 	if (dst.s_addr == AODV_BROADCAST)
 	    sendPacket(p, dst, 0.001 * Random::uniform());
@@ -538,27 +553,28 @@ void NS_CLASS aodv_socket_send(AODV_msg * aodv_msg, struct in_addr dst,
 #endif
     }
 
-    /* Do not print hello msgs... */
+    /* Do not print hello msgs... 不要打印hello消息... */
     if (!(aodv_msg->type == AODV_RREP && (dst.s_addr == AODV_BROADCAST)))
 	DEBUG(LOG_INFO, 0, "AODV msg to %s ttl=%d size=%u",
 	      ip_to_str(dst), ttl, retval, len);
 
     return;
 }
-
+/*aodv_socket_queue_msg函数把一个AODV消息存储在发送缓冲区里*/
 AODV_msg *NS_CLASS aodv_socket_new_msg(void)
 {
     memset(send_buf, '\0', SEND_BUF_SIZE);
     return (AODV_msg *) (send_buf);
 }
 
-/* Copy an existing AODV message to the send buffer */
+/* Copy an existing AODV message to the send buffer 
+将现有AODV消息复制到发送缓冲区 */
 AODV_msg *NS_CLASS aodv_socket_queue_msg(AODV_msg * aodv_msg, int size)
 {
     memcpy((char *) send_buf, aodv_msg, size);
     return (AODV_msg *) send_buf;
 }
-
+/*清空套接字信息并关闭它*/
 void aodv_socket_cleanup(void)
 {
 #ifndef NS_PORT
