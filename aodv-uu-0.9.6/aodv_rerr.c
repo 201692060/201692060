@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Authors: Erik Nordstr�m, <erik.nordstrom@it.uu.se>
+ * Authors: Erik Nordström, <erik.nordstrom@it.uu.se>
  *          
  *
  *****************************************************************************/
@@ -41,7 +41,7 @@ RERR *NS_CLASS rerr_create(u_int8_t flags, struct in_addr dest_addr,
     RERR *rerr;
 
     DEBUG(LOG_DEBUG, 0, "Assembling RERR about %s seqno=%d",
-	  ip_to_str(dest_addr), dest_seqno);
+	  ip_to_str(dest_addr), dest_seqno);//不可达目的节点ip地址，不可达目的节点序列号
 
     rerr = (RERR *) aodv_socket_new_msg();
     rerr->type = AODV_RERR;
@@ -53,7 +53,7 @@ RERR *NS_CLASS rerr_create(u_int8_t flags, struct in_addr dest_addr,
     rerr->dest_count = 1;
 
     return rerr;
-}
+}//新建RRER消息，并将函数参数：dest_addr与dest_seqno赋值给RRER相应参数
 
 void NS_CLASS rerr_add_udest(RERR * rerr, struct in_addr udest,
 			     u_int32_t udest_seqno)
@@ -64,14 +64,14 @@ void NS_CLASS rerr_add_udest(RERR * rerr, struct in_addr udest,
     ud->dest_addr = udest.s_addr;
     ud->dest_seqno = htonl(udest_seqno);
     rerr->dest_count++;
-}
+}//添加不可达目的节点，并记录不可达节点信息，包括ip地址、序列号等
 
 
 void NS_CLASS rerr_process(RERR * rerr, int rerrlen, struct in_addr ip_src,
-			   struct in_addr ip_dst)
+			   struct in_addr ip_dst)//处理节点收到的RRER消息
 {
     RERR *new_rerr = NULL;
-    RERR_udest *udest;
+    RERR_udest *udest;//不可达目的节点
     rt_table_t *rt;
     u_int32_t rerr_dest_seqno;
     struct in_addr udest_addr, rerr_unicast_dest;
@@ -90,7 +90,7 @@ void NS_CLASS rerr_process(RERR * rerr, int rerrlen, struct in_addr ip_src,
 	     RERR_CALC_SIZE(rerr));
 
 	return;
-    }
+    }//判断接收参数rerrlen，即rerr消息的大小，若其小于下限值 RERR_CALC_SIZE(rerr)，则输出警示消息并返回。
 
     /* Check which destinations that are unreachable.  */
     udest = RERR_UDEST_FIRST(rerr);
@@ -101,7 +101,7 @@ void NS_CLASS rerr_process(RERR * rerr, int rerrlen, struct in_addr ip_src,
 	rerr_dest_seqno = ntohl(udest->dest_seqno);
 	DEBUG(LOG_DEBUG, 0, "unreachable dest=%s seqno=%lu",
 	      ip_to_str(udest_addr), rerr_dest_seqno);
-
+        // 检查不可达目的结点，并循环输出其 IP 地址以及序列号。 
 	rt = rt_table_find(udest_addr);
 
 	if (rt && rt->state == VALID && rt->next_hop.s_addr == ip_src.s_addr) {
@@ -114,7 +114,7 @@ void NS_CLASS rerr_process(RERR * rerr, int rerrlen, struct in_addr ip_src,
 		udest = RERR_UDEST_NEXT(udest);
 		rerr->dest_count--;
 		continue;
-	    }
+	    }// 检查 rerr 消息中的不可达结点的目的序列号与路由表项中保存的最 新的相应结点的序列号，若后者大于前者则说明消息已过期，直接返回。 
 	    DEBUG(LOG_DEBUG, 0, "removing rte %s - WAS IN RERR!!",
 		  ip_to_str(udest_addr));
 
@@ -128,7 +128,7 @@ void NS_CLASS rerr_process(RERR * rerr, int rerrlen, struct in_addr ip_src,
 	    /* (a) updates the corresponding destination sequence number
 	       with the Destination Sequence Number in the packet, and */
 	    rt->dest_seqno = rerr_dest_seqno;
-
+            // 调用 rt_table_invalidate()使路由 rt 无效,随后将 rt 的目的节点序 列号更新为消息包中相应的的目的结点序列号。   
 	    /* (d) check precursor list for emptiness. If not empty, include
 	       the destination as an unreachable destination in the
 	       RERR... */
@@ -148,8 +148,9 @@ void NS_CLASS rerr_process(RERR * rerr, int rerrlen, struct in_addr ip_src,
 		    if (rt->nprec == 1)
 			rerr_unicast_dest =
 			    FIRST_PREC(rt->precursors)->neighbor;
-
-		} else {
+                  
+		}// 判断先驱列表是否为空，如果为空，则在 rerr 消息添加目的 IP 为不可达结点。
+		    else {
 		    /* Decide whether new precursors make this a non unicast RERR */
 		    rerr_add_udest(new_rerr, rt->dest_addr, rt->dest_seqno);
 
@@ -180,7 +181,7 @@ void NS_CLASS rerr_process(RERR * rerr, int rerrlen, struct in_addr ip_src,
 	}
 	udest = RERR_UDEST_NEXT(udest);
 	rerr->dest_count--;
-    }				/* End while() */
+    }//为所有不可达目的结点删除先驱路由链表 		/* End while() */
 
     /* If a RERR was created, then send it now... */
     if (new_rerr) {
@@ -205,6 +206,6 @@ void NS_CLASS rerr_process(RERR * rerr, int rerrlen, struct in_addr ip_src,
 		aodv_socket_send((AODV_msg *) new_rerr, dest,
 				 RERR_CALC_SIZE(new_rerr), 1, &DEV_NR(i));
 	    }
-	}
+	} //如果构造的 rerr 消息的 dest_count=1，那么现在即单播 rerr 消息； 否则，我们只应该向包含断裂路由先驱结点的端口发送 RERR 消息。 
     }
 }
