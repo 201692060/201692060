@@ -75,7 +75,7 @@ void nl_init(void)
 	int status;
 	unsigned int addrlen;
 
-	memset(&peer, 0, sizeof(struct sockaddr_nl));
+	memset(&peer, 0, sizeof(struct sockaddr_nl));//初始化
 	peer.nl_family = AF_NETLINK;
 	peer.nl_pid = 0;
 	peer.nl_groups = 0;
@@ -86,8 +86,7 @@ void nl_init(void)
 	aodvnl.local.nl_groups = AODVGRP_NOTIFY;
 	aodvnl.local.nl_pid = getpid();
 
-	/* This is the AODV specific socket to communicate with the
-	   AODV kernel module */
+	/* 这是与AODV内核模块通信的AODV特定套接字 */
 	aodvnl.sock = socket(PF_NETLINK, SOCK_RAW, NETLINK_AODV);
 
 	if (aodvnl.sock < 0) {
@@ -96,7 +95,7 @@ void nl_init(void)
 	}
 
 
-	status = bind(aodvnl.sock, (struct sockaddr *) &aodvnl.local,
+	status = bind(aodvnl.sock, (struct sockaddr *) &aodvnl.local,	//将一本地地址与一接口捆绑
 		      sizeof(aodvnl.local));
 
 	if (status == -1) {
@@ -152,14 +151,14 @@ void nl_init(void)
 	}
 }
 
-void nl_cleanup(void)//关闭上面建立的两个套接字
+void nl_cleanup(void)	//关闭上面建立的两个套接字
 {
 	close(aodvnl.sock);
 	close(rtnl.sock);
 }
 
 
-static void nl_kaodv_callback(int sock)//根据内核套接字收到的不同命令执行不同的函数
+static void nl_kaodv_callback(int sock)	//根据内核套接字收到的不同命令执行不同的函数
 {
 	int len;
 	socklen_t addrlen;
@@ -174,7 +173,7 @@ static void nl_kaodv_callback(int sock)//根据内核套接字收到的不同命
 
 
 	len =
-	    recvfrom(sock, buf, BUFLEN, 0, (struct sockaddr *) &peer, &addrlen);
+	    recvfrom(sock, buf, BUFLEN, 0, (struct sockaddr *) &peer, &addrlen);//接收数据，并捕获数据源地址
 
 	if (len <= 0)
 		return;
@@ -222,12 +221,12 @@ static void nl_kaodv_callback(int sock)//根据内核套接字收到的不同命
 		rreq_route_discovery(dest_addr, 0, NULL);
 		break;
 	case KAODVM_REPAIR:
-		m = NLMSG_DATA(nlm);
+		m = NLMSG_DATA(nlm);//返回数据区地址
 		dest_addr.s_addr = m->dst;
 		src_addr.s_addr = m->src;
 
 		DEBUG(LOG_DEBUG, 0, "Got REPAIR from kernel for %s",
-		      ip_to_str(dest_addr));
+		      ip_to_str(dest_addr));	//将ip转换为字符串类型
 
 		fwd_rt = rt_table_find(dest_addr);
 
@@ -400,8 +399,8 @@ int addattr(struct nlmsghdr *n, int type, void *data, int alen)
 	attr = (struct rtattr *) (((char *) n) + NLMSG_ALIGN(n->nlmsg_len));
 	attr->rta_type = type;
 	attr->rta_len = len;
-	memcpy(RTA_DATA(attr), data, alen);
-	n->nlmsg_len = NLMSG_ALIGN(n->nlmsg_len) + len;
+	memcpy(RTA_DATA(attr), data, alen);//内存拷贝函数
+	n->nlmsg_len = NLMSG_ALIGN(n->nlmsg_len)/*得到不小于nlmsg_len且字节整齐的最小数值*/ + len;
 
 	return 0;
 }
@@ -427,7 +426,7 @@ int nl_send(struct nlsock *nl, struct nlmsghdr *n)//发送数据包给内核模�
 	n->nlmsg_flags |= NLM_F_ACK;
 
 	/* 发送消息到netlink接口。 */
-	res = sendmsg(nl->sock, &msg, 0);
+	res = sendmsg(nl->sock, &msg, 0);//从套接字发送信息
 
 	if (res < 0) {
 		fprintf(stderr, "error: %s\n", strerror(errno));
@@ -527,7 +526,7 @@ int nl_send_add_route_msg(struct in_addr dest, struct in_addr next_hop,	//向内
 			     AF_INET, ifindex, &dest, &next_hop, NULL, metric);
 }
 
-int nl_send_no_route_found_msg(struct in_addr dest)//向内核发送信息，标记到目的地的路由信息为无法找到
+int nl_send_no_route_found_msg(struct in_addr dest)	//向内核发送信息，标记到目的地的路由信息为无法找到
 {
 	struct {
 		struct nlmsghdr n;
@@ -560,7 +559,7 @@ int nl_send_del_route_msg(struct in_addr dest, struct in_addr next_hop, int metr
 
 	memset(&areq, 0, sizeof(areq));
 
-	areq.n.nlmsg_len = NLMSG_LENGTH(sizeof(struct kaodv_rt_msg));
+	areq.n.nlmsg_len = NLMSG_LENGTH(sizeof(struct kaodv_rt_msg));//消息长度
 	areq.n.nlmsg_type = KAODVM_DELROUTE;
 	areq.n.nlmsg_flags = NLM_F_REQUEST;
 
