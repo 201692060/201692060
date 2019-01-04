@@ -25,13 +25,13 @@
 /* #include "routing_table.h" */
 
 void nl_init(void);
-void nl_cleanup(void);
-int nl_send_add_route_msg(struct in_addr dest, struct in_addr next_hop,
+void nl_cleanup(void);		//关闭套接字
+int nl_send_add_route_msg(struct in_addr dest, struct in_addr next_hop,	//向内核发送一个添加一个路由信息的消息
 			  int metric, u_int32_t lifetime, int rt_flags,
 			  int ifindex);
-int nl_send_del_route_msg(struct in_addr dest, struct in_addr next_hop, int metric);
+int nl_send_del_route_msg(struct in_addr dest, struct in_addr next_hop, int metric);//向内核发送一条要求删除一条路由条目的消息
 
-int nl_send_no_route_found_msg(struct in_addr dest);
-int nl_send_conf_msg(void);
+int nl_send_no_route_found_msg(struct in_addr dest);//向内核发送一条消息，标记到该目的地的路由信息为无法找到
+int nl_send_conf_msg(void);//向内核发送一条消息，要求进行设置
 
 #endif
