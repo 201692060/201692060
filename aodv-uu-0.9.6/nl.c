@@ -46,7 +46,7 @@
 #include "aodv_rerr.h"
 
 /* Implements a Netlink socket communication channel to the kernel. Route
- * information and refresh messages are passed. */
+ * information and refresh messages are passed. 实现到内核的Netlink套接字通信通道。 传递路由信息和刷新消息。*/
 
 struct nlsock {
 	int sock;
@@ -116,7 +116,7 @@ void nl_init(void)
 		alog(LOG_ERR, 0, __FUNCTION__, "Could not attach callback.");
 	}
 	/* This socket is the generic routing socket for adding and
-	   removing kernel routing table entries */
+	   removing kernel routing table entries 此套接字是用于添加和删除内核路由表条目的通用路由套接字 */
 
 	memset(&rtnl, 0, sizeof(struct nlsock));
 	rtnl.seq = 0;
@@ -284,7 +284,7 @@ static void nl_kaodv_callback(int sock)//根据内核套接字收到的不同命
 				rerr = rerr_create(0, dest_addr, 0);
 
 			/* Unicast the RERR to the source of the data transmission
-			 * if possible, otherwise we broadcast it. */
+			 * if possible, otherwise we broadcast it.  如果可能，将RERR单播到数据传输源，否则我们广播它。*/
 
 			if (rev_rt && rev_rt->state == VALID)
 				rerr_dest = rev_rt->next_hop;
@@ -423,10 +423,10 @@ int nl_send(struct nlsock *nl, struct nlmsghdr *n)//发送数据包给内核模�
 	n->nlmsg_seq = ++nl->seq;
 	n->nlmsg_pid = nl->local.nl_pid;
 
-	/* Request an acknowledgement by setting NLM_F_ACK */
+	/* 通过设置NLM_F_ACK请求确认 */
 	n->nlmsg_flags |= NLM_F_ACK;
 
-	/* Send message to netlink interface. */
+	/* 发送消息到netlink接口。 */
 	res = sendmsg(nl->sock, &msg, 0);
 
 	if (res < 0) {
@@ -437,8 +437,8 @@ int nl_send(struct nlsock *nl, struct nlmsghdr *n)//发送数据包给内核模�
 }
 
 /* Function to add, remove and update entries in the kernel routing
- * table */
-int nl_kern_route(int action, int flags, int family,	
+ * table 用于添加，删除和更新内核路由表中的条目的功能 */
+int nl_kern_route(int action, int flags, int family,	//操纵内核路由表（增加、修改、删除路由表条目等操作）
 		  int index, struct in_addr *dst, struct in_addr *gw,
 		  struct in_addr *nm, int metric)
 {
@@ -486,8 +486,8 @@ int nl_kern_route(int action, int flags, int family,
 	return nl_send(&rtnl, &req.nlh);
 }
 
-int nl_send_add_route_msg(struct in_addr dest, struct in_addr next_hop,
-			  int metric, u_int32_t lifetime, int rt_flags,
+int nl_send_add_route_msg(struct in_addr dest, struct in_addr next_hop,	//向内核发送一个添加路由信息的消息
+			  int metric, u_int32_t lifetime, int rt_flags,	//包括目的地地址、下一跳、生存期、路由状态标志、网络接口等
 			  int ifindex)
 {
 	struct {
@@ -527,7 +527,7 @@ int nl_send_add_route_msg(struct in_addr dest, struct in_addr next_hop,
 			     AF_INET, ifindex, &dest, &next_hop, NULL, metric);
 }
 
-int nl_send_no_route_found_msg(struct in_addr dest)
+int nl_send_no_route_found_msg(struct in_addr dest)//向内核发送信息，标记到目的地的路由信息为无法找到
 {
 	struct {
 		struct nlmsghdr n;
@@ -548,7 +548,7 @@ int nl_send_no_route_found_msg(struct in_addr dest)
 	return nl_send(&aodvnl, &areq.n);
 }
 
-int nl_send_del_route_msg(struct in_addr dest, struct in_addr next_hop, int metric)
+int nl_send_del_route_msg(struct in_addr dest, struct in_addr next_hop, int metric)//向内核发送一条信息，要求删除一条路由条目
 {
 	int index = -1;
 	struct {
@@ -580,7 +580,7 @@ int nl_send_del_route_msg(struct in_addr dest, struct in_addr next_hop, int metr
 			     NULL, metric);
 }
 
-int nl_send_conf_msg(void)
+int nl_send_conf_msg(void)//向内核发送一条信息，要求进行设置
 {
 	struct {
 		struct nlmsghdr n;
