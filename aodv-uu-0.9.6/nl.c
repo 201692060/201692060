@@ -152,14 +152,14 @@ void nl_init(void)
 	}
 }
 
-void nl_cleanup(void)
+void nl_cleanup(void)//关闭上面建立的两个套接字
 {
 	close(aodvnl.sock);
 	close(rtnl.sock);
 }
 
 
-static void nl_kaodv_callback(int sock)
+static void nl_kaodv_callback(int sock)//根据内核套接字收到的不同命令执行不同的函数
 {
 	int len;
 	socklen_t addrlen;
@@ -307,7 +307,7 @@ static void nl_kaodv_callback(int sock)
 	}
 
 }
-static void nl_rt_callback(int sock)
+static void nl_rt_callback(int sock)//根据路由套接字收到的不同命令执行不同的函数
 {
 	int len, attrlen;
 	socklen_t addrlen;
@@ -369,7 +369,7 @@ static void nl_rt_callback(int sock)
 	return;
 }
 
-int prefix_length(int family, void *nm)
+int prefix_length(int family, void *nm)//根据子网掩码，计算前缀长度
 {
 	int prefix = 0;
 
@@ -409,7 +409,7 @@ int addattr(struct nlmsghdr *n, int type, void *data, int alen)
 
 #define ATTR_BUFLEN 512
 
-int nl_send(struct nlsock *nl, struct nlmsghdr *n)
+int nl_send(struct nlsock *nl, struct nlmsghdr *n)//发送数据包给内核模块
 {
 	int res;
 	struct iovec iov = { (void *) n, n->nlmsg_len };
@@ -438,7 +438,7 @@ int nl_send(struct nlsock *nl, struct nlmsghdr *n)
 
 /* Function to add, remove and update entries in the kernel routing
  * table */
-int nl_kern_route(int action, int flags, int family,
+int nl_kern_route(int action, int flags, int family,	
 		  int index, struct in_addr *dst, struct in_addr *gw,
 		  struct in_addr *nm, int metric)
 {
